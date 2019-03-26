@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #container {
+            width: 400px;
+            height: 400px;
+        }
+
+        .button-container {
+            display: flex;
+            height: 40px;
+            border: 1px solid lightblue;
+        }
+
+        #content {
+            height: 360px;
+            border: 1px solid lightblue;
+        }
+
+        .button {
+            height: 40px;
+            width: 100%;
+            cursor: pointer;
+            line-height: 40px;
+            text-align: center;
+        }
+
+        .button:hover {
+            background: lightgray;
+        }
+
+        .active {
+            background: lightblue;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="content"></div>
+        <div class="button-container">
+            <div class="button" data-index=0>加载一</div>
+            <div class="button" data-index=1>加载二</div>
+            <div class="button" data-index=2>加载三</div>
+        </div>
+    </div>
+    <script>
+        function loadData(index) {
+            let classify
+            switch (index) {
+                case 0: classify = '/tab1';break;
+                case 1: classify = '/tab2';break;
+                case 2: classify = '/tab3';break;
+            }
+            myFetch(baseUrl+classify, {
+                headers: {
+                    method: 'GET',
+                    contentType: 'text/html',
+                    mode: 'cors'
+                }
+            }, 3000)
+            .then(data=>{
+                // console.log(data)
+                return data.text()
+            }).then(data=>{
+                $content.innerText = data
+            }).catch(err => {
+                console.log(err)
+            })
+
+        }
+
+        let abort = null
+        function myFetch(url, options, timeout) {
+            timeout = timeout || 500
+            let p = new Promise((relsove, reject) => {
+                abort = function () {
+                    reject('Abort')
+                }
+                setTimeout(abort, timeout)
+            })
+            let q = fetch(url, options)
+            return Promise.race([p, q])
+        }
+
+        const baseUrl = 'http://localhost:3000'
+        const $contain = document.querySelector('#container')
+        const $content = document.querySelector('#content')
+
+        $contain.addEventListener('click', function (e) {
+            const target = e.target
+            if (target.className.indexOf('button') > -1) {
+                abort && abort()
+                const index = +target.getAttribute('data-index')
+                loadData(index)
+            }
+        })
+    </script>
+</body>
+</html>
